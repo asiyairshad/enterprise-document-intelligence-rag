@@ -1,25 +1,43 @@
-from fastapi import APIRouter
-from enterprise_document_intelligence_rag.app.services.ingestion_service import ingest_and_chunk, ingest_and_index
-from enterprise_document_intelligence_rag.app.services.query_service import query_vectorstore
+from fastapi import APIRouter, HTTPException
+from enterprise_document_intelligence_rag.app.services.ingestion_service import ingest_all_documents
+from enterprise_document_intelligence_rag.app.services.query_service import query_knowledge_base
+
 router = APIRouter()
 
 
 @router.get("/")
-def home():
-    return {"message": "RAG System running"}
+def health_check():
+    """
+    Health check endpoint.
+    """
+    return {"status": "Enterprise RAG system running"}
 
 
 @router.post("/ingest")
-def ingest(path: str):
-    chunks = ingest_and_chunk(path)
-    return {
-        "chunks_count": len(chunks),
-        "preview": chunks[0][:200] if chunks else "No chunks"
-    }
+def ingest_documents():
+    """
+    Ingest ALL PDFs present in data/raw into a single FAISS index.
+    """
+    try:
+        ingest_all_documents()
+        return {"message": "All documents ingested successfully"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
 
 @router.post("/query")
-def query_doc(question: str, path:str):
-    vectorstore = ingest_and_index(path)
-    answer = query_vectorstore(vectorstore, question)
+def query_documents(question: str):
+    """
+    Query across ALL ingested documents.
+    """
+    if not question.strip():
+        raise HTTPException(status_code=400, detail="Question cannot be empty")
 
-    return{"answer": answer}
+    try:
+        answer, sources = query_knowledge_base(question)
+        return {
+            "answer": answer,
+            "sources": sources
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))

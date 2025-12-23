@@ -6,3 +6,5 @@ unstructured
 requests
 datetime
 pydantic
+faiss-cpu
+streamlit

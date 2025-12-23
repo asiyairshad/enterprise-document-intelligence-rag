@@ -1,21 +1,32 @@
 from langchain_openai import ChatOpenAI
+from enterprise_document_intelligence_rag.app.vectorstores.faiss_store import load_faiss_index
+from enterprise_document_intelligence_rag.app.embeddings.embedding import get_embeddings
 
-def query_vectorstore(vectorstore, question:str):
-    retriever = vectorstore.as_retriever(search_kwargs={"k":5})
 
+def query_knowledge_base(question: str):
+    embeddings = get_embeddings()
+    vectorstore = load_faiss_index(embeddings)
+
+    retriever = vectorstore.as_retriever(search_kwargs={"k": 6})
     docs = retriever.invoke(question)
 
-    llm = ChatOpenAI(model = "gpt-4o-mini", temperature = 0)
+    sources = list(set(doc.metadata["source"] for doc in docs))
 
-    context = "\n\n".join([doc.page_content for doc in docs])
+    context = "\n\n".join(doc.page_content for doc in docs)
+
+    llm = ChatOpenAI(model="gpt-4o-mini", temperature=0)
 
     prompt = f"""
-    Answer the question using only the content below .
-    If you don't know the answer, just say that you don't know.
-    Do not make up an answer.
+You are an assistant answering questions from multiple documents.
+Use ONLY the context below.
 
-    context:{context}
-    question:{question}
-    """
+Context:
+{context}
 
-    return llm.invoke(prompt).content
+Question:
+{question}
+"""
+
+    answer = llm.invoke(prompt).content
+
+    return answer, sources

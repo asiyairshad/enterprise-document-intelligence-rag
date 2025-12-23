@@ -1,16 +1,14 @@
 from langchain_community.vectorstores import FAISS
 from pathlib import Path
 
-
 VECTORSTORE_DIR = Path("vectorstore")
 
-
-def build_faiss_index(chunks: list[str], embeddings):
-    """
-    Build FAISS index from text chunks.
-    """
-    return FAISS.from_texts(chunks, embedding=embeddings)
-
+def build_faiss_index(texts, embeddings, metadatas):
+    return FAISS.from_texts(
+        texts=texts,
+        embedding=embeddings,
+        metadatas=metadatas
+    )
 
 def save_faiss_index(vectorstore):
     """
@@ -18,7 +16,6 @@ def save_faiss_index(vectorstore):
     """
     VECTORSTORE_DIR.mkdir(exist_ok=True)
     vectorstore.save_local(str(VECTORSTORE_DIR))
-
 
 def load_faiss_index(embeddings):
     """
