@@ -1,7 +1,18 @@
 import streamlit as st
 import requests
+import subprocess
+import time
 
-API_URL = "http://127.0.0.1:8000"
+API_URL = "http://localhost:8000"
+
+subprocess.Popen([
+    "uvicorn",
+    "enterprise_document_intelligence_rag.app.main:app",
+    "--host", "0.0.0.0",
+    "--port", "8000"
+])
+
+time.sleep(2)
 
 st.set_page_config(page_title="Enterprise RAG", layout="wide")
 st.title("📄 Chat with your Document")
