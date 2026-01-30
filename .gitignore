@@ -10,3 +10,5 @@ wheels/
 .venv
 .env
 .qodo
+index.faiss
+index.pkl
