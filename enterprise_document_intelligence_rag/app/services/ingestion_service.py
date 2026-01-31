@@ -1,4 +1,5 @@
 from pathlib import Path
+import os 
 from enterprise_document_intelligence_rag.app.embeddings.embedding import get_embeddings
 from enterprise_document_intelligence_rag.app.vectorstores.faiss_store import (
     build_faiss_index,
@@ -7,14 +8,15 @@ from enterprise_document_intelligence_rag.app.vectorstores.faiss_store import (
 from enterprise_document_intelligence_rag.app.ingestion.loader import load_pdf
 from enterprise_document_intelligence_rag.app.chunking.chunker import chunk_text
 
-DATA_DIR = Path(__file__).resolve().parents[2] / "data" / "raw"
+BASE_DIR = Path(__file__).resolve().parents[3]   # project root
+DATA_DIR = Path(os.getenv("DATA_DIR", BASE_DIR / "data" / "raw"))
 
 def ingest_all_documents():
     all_chunks = []
     metadatas = []
 
     for pdf_path in DATA_DIR.glob("*.pdf"):
-        text_list = load_pdf(pdf_path.name)  # list of pages
+        text_list = load_pdf(str(pdf_path))  # list of pages
 
         for page_no, page_text in enumerate(text_list, start=1):
             chunks = chunk_text(page_text)
